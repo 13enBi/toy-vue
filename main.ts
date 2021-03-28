@@ -1,14 +1,49 @@
-import { Component } from "./src/render/component";
-import { render } from "./src/render/render";
-import { h } from "./src/render/vnode";
+import { render } from './src/render/render';
+import { h } from './src/render/vnode';
 
-const component: Component = {
-    setup(props) {
-        return () =>
-            h("div", { class: "comp" }, [h("div", { class: "c1" }, [props.title]), h("img", { src: "./favicon.svg" })]);
-    },
+console.time('render');
+render(
+	h(
+		'div',
+		{
+			class: 'a1 a2',
+			style: { color: 'red' },
+			'data-name': 'demo',
+			onClick() {
+				console.log(1);
+			},
+		},
+		new Array(5).fill('').map((_, i) =>
+			h(
+				'div',
+				{
+					'data-id': i,
+					onClick() {
+						console.log(i);
+					},
+				},
+				[i + '']
+			)
+		)
+	),
+	'#app'
+);
+console.timeEnd('render');
+
+(window as any).a = () => {
+	render(
+		h(
+			'div',
+			{
+				class: ['b1', 'b2'],
+				style: { color: 'blue' },
+				'data-id': '1',
+				onmousedown() {
+					console.log(2);
+				},
+			},
+			['demo2']
+		),
+		'#app'
+	);
 };
-
-const html = h("div", { id: "demo" }, [h("p", null, ["p2"]), h(component, { title: "title" }), h("p", null, ["p3"])]);
-
-render(html, "#app");

@@ -1,68 +1,116 @@
-import { isString } from "../utils";
-import { createComponentInstance } from "./component";
-import { createElement, createText, insert, querySelector, setAttr } from "./host";
-import { h, Vnode, VnodeChildren, VnodeFlag } from "./vnode";
+import { isString } from '../utils';
+import { createComponentInstance } from './component';
+import { createElement, createText, Host, insert, querySelector, remove, setText } from './host';
+import { patchProps } from './props';
+import { h, normalizeChildren, Vnode, VnodeChildren, VnodeFlag } from './vnode';
 
-const renderChildren = (children: VnodeChildren | undefined, container: Element) => {
-    children?.forEach((child) => {
-        if (typeof child === "string") child = h(null, null, [child]);
+type PatchNode = Vnode | null;
 
-        render(child, container);
-    });
+const unmount = (vnode: Vnode | null) => {
+	if (vnode && vnode.el) remove(vnode.el);
 };
 
-const renderElement = (vnode: Vnode, container: Element) => {
-    const tag = vnode.type as string;
+const mountChildren = (children: VnodeChildren | undefined, el: Host) => {
+	children?.forEach((child) => {
+		if (isString(child)) child = h(null, null, [child]);
 
-    const el = (vnode.el = createElement(tag));
-
-    renderChildren(vnode.children, el);
-
-    const propsEntries = vnode.props && Object.entries(vnode.props);
-
-    if (propsEntries) {
-        propsEntries.forEach((kv) => {
-            setAttr(el, ...kv);
-        });
-    }
-
-    insert(container, el);
+		patch(null, child, el);
+	});
 };
 
-const renderText = (vnode: Vnode, container: Element) => {
-    const text = vnode.children![0] as string;
+const patchChildren = (prev: VnodeChildren | undefined, next: VnodeChildren | undefined, el: Host) => {
+	prev?.forEach((child) => {
+		unmount(child as Vnode);
+	});
 
-    insert(container, createText(text));
+	mountChildren(next, el);
 };
 
-const renderComponent = (vnode: Vnode, container: Element) => {
-    const instance = createComponentInstance(vnode);
+const mountElement = (vnode: Vnode, container: Host) => {
+	const el = (vnode.el = createElement(vnode.type as string));
 
-    //effect
-    instance.tree = instance.render!();
+	mountChildren(vnode.children, el);
+	patchProps(null, vnode.props, el);
 
-    render(instance.tree, container);
+	container.vnode = vnode;
+
+	insert(container, el);
 };
 
-export const render = (vnode: Vnode, container: Element | string) => {
-    isString(container) && (container = querySelector(container)!);
+const patchElement = (prev: Vnode, next: Vnode, container: Host) => {
+	const el = (next.el = prev.el!) as Host;
 
-    switch (vnode.flag) {
-        case VnodeFlag.Element: {
-            renderElement(vnode, container);
-            break;
-        }
-        case VnodeFlag.Text: {
-            renderText(vnode, container);
-            break;
-        }
-        case VnodeFlag.Component: {
-            renderComponent(vnode, container);
-            break;
-        }
+	patchProps(prev.props, next.props, el);
+	patchChildren(prev.children, next.children, el);
 
-        default: {
-            throw new Error("unknow vnode flag");
-        }
-    }
+	container.vnode = next;
+};
+
+const renderElement = (prev: PatchNode, next: Vnode, container: Host) => {
+	normalizeChildren(next);
+
+	if (prev) {
+		patchElement(prev, next, container);
+	} else {
+		mountElement(next, container);
+	}
+};
+
+const renderText = (prev: PatchNode, next: Vnode, container: Host) => {
+	const text = next.children![0] as string;
+
+	if (prev) {
+		setText((next.el = prev.el)!, text);
+	} else {
+		const el = (next.el = createText(text));
+
+		insert(container, el);
+	}
+};
+
+const renderComponent = (vnode: Vnode, container: Host) => {
+	const instance = createComponentInstance(vnode);
+
+	//effect
+	instance.tree = instance.render!();
+
+	render(instance.tree, container);
+};
+
+const patch = (prev: PatchNode, next: Vnode, container: Host) => {
+	if (prev?.type !== next.type) {
+		unmount(prev);
+		prev = null;
+	}
+
+	switch (next.flag) {
+		case VnodeFlag.Element: {
+			renderElement(prev, next, container);
+			break;
+		}
+		case VnodeFlag.Text: {
+			renderText(prev, next, container);
+			break;
+		}
+		case VnodeFlag.Component: {
+			renderComponent(next, container);
+			break;
+		}
+
+		default: {
+			throw new Error('unknow vnode flag');
+		}
+	}
+};
+
+export const render = (vnode: PatchNode, container: Host | string) => {
+	isString(container) && (container = querySelector(container) as HTMLElement);
+
+	const { vnode: _vnode } = container;
+
+	if (vnode) {
+		patch(_vnode || null, vnode, container);
+	} else if (_vnode) {
+		unmount(_vnode);
+	}
 };
