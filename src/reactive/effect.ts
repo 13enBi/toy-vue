@@ -1,0 +1,3 @@
+interface Effect {
+    (): void;
+}
