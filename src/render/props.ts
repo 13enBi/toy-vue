@@ -86,6 +86,10 @@ export const patchEvent = (
     }
 };
 
+export const patchDomProp = (key: string, val: any, el: any) => {
+    el[key] = val;
+};
+
 const patchProp = (key: string, prev: any, next: any, el: HTMLElement) => {
     if (key === "style") {
         patchStyle(prev, next, el);
@@ -93,6 +97,8 @@ const patchProp = (key: string, prev: any, next: any, el: HTMLElement) => {
         patchClass(next, el);
     } else if (isEvent(key)) {
         patchEvent(key, prev, next, el);
+    } else if (has(el, key)) {
+        patchDomProp(key, next, el);
     } else {
         patchAttr(key, next, el);
     }
