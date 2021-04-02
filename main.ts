@@ -1,49 +1,19 @@
-import { render } from './src/render/render';
-import { h } from './src/render/vnode';
+import { reactive } from "./src/reactive/reactive";
+import { render } from "./src/render/render";
+import { h } from "./src/render/vnode";
 
-console.time('render');
-render(
-	h(
-		'div',
-		{
-			class: 'a1 a2',
-			style: { color: 'red' },
-			'data-name': 'demo',
-			onClick() {
-				console.log(1);
-			},
-		},
-		new Array(5).fill('').map((_, i) =>
-			h(
-				'div',
-				{
-					'data-id': i,
-					onClick() {
-						console.log(i);
-					},
-				},
-				[i + '']
-			)
-		)
-	),
-	'#app'
-);
-console.timeEnd('render');
+const comp = {
+    setup() {
+        const target = reactive({ count: 1 });
 
-(window as any).a = () => {
-	render(
-		h(
-			'div',
-			{
-				class: ['b1', 'b2'],
-				style: { color: 'blue' },
-				'data-id': '1',
-				onmousedown() {
-					console.log(2);
-				},
-			},
-			['demo2']
-		),
-		'#app'
-	);
+        console.log(target);
+
+        setTimeout(() => {
+            target.count = 123123;
+        }, 1000);
+
+        return () => h("div", null, [target.count === 1 ? h("div", null, ["wuhu"]) : h("p", null, ["qifei"])]);
+    },
 };
+
+render(h(comp), "#app");
