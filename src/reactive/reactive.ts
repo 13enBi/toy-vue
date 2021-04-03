@@ -1,21 +1,28 @@
-import { track, trigger } from "./effect";
+import { track, trigger } from './effect';
+
+const RAW = '__raw';
 
 const handler: ProxyHandler<any> = {
-    get(target, key) {
-        track(target, key);
+	get(target, key) {
+		track(target, key);
 
-        return Reflect.get(target, key);
-    },
+		return Reflect.get(target, key);
+	},
 
-    set(target, key, value) {
-        const res = Reflect.set(target, key, value);
+	set(target, key, value) {
+		const res = Reflect.set(target, key, value);
 
-        trigger(target, key);
+		trigger(target, key);
 
-        return res;
-    },
+		return res;
+	},
 };
 
 export const reactive = <T extends object>(source: T): T => {
-    return new Proxy(source, handler);
+	const result = new Proxy(source, handler);
+	result[RAW] = source;
+
+	return result;
 };
+
+export const toRaw = <T extends object>(target: T): T => (target as any)[RAW] || target;

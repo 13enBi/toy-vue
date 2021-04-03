@@ -1,3 +1,3 @@
 declare interface Window {
-    [k: string]: any;
+	[k: string]: any;
 }

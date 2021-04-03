@@ -1,3 +1,4 @@
+import { toRaw } from '../reactive/reactive';
 import { entries, has, isEmptyObject, isObject, isString } from '../utils';
 import { isEvent, patchEvent } from './event';
 import { setAttr } from './host';
@@ -63,6 +64,30 @@ const patchProp = (key: string, prev: any, next: any, el: HTMLElement) => {
 	} else {
 		patchAttr(key, next, el);
 	}
+};
+
+export const patchComponentProps = (prev: Props, next: Props | null) => {
+	if (!prev) return;
+
+	if (!next) {
+		entries(prev, (k) => {
+			delete prev![k];
+		});
+		return;
+	}
+
+	prev = toRaw(prev);
+	next = toRaw(next);
+
+	entries(next, (key, val) => {
+		prev[key] = val;
+	});
+
+	entries(prev, (key) => {
+		if (!has(next, key)) {
+			Reflect.deleteProperty(prev, key);
+		}
+	});
 };
 
 export const patchProps = (prev: Props | null, next: Props | null, el: HTMLElement) => {
