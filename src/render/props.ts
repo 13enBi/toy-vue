@@ -2,7 +2,7 @@ import { toRaw } from '../reactive/reactive';
 import { entries, has, isEmptyObject, isObject, isString } from '../utils';
 import { isEvent, patchEvent } from './event';
 import { setAttr } from './host';
-import { Props } from './vnode';
+import { Props, Vnode } from './vnode';
 
 type Style = string | Record<string, string> | null;
 
@@ -66,28 +66,31 @@ const patchProp = (key: string, prev: any, next: any, el: HTMLElement) => {
 	}
 };
 
-export const patchComponentProps = (prev: Props, next: Props | null) => {
-	if (!prev) return;
+export const patchComponentProps = (prev: Vnode, next: Vnode) => {
+	const prevProps = toRaw(prev.props!);
 
-	if (!next) {
-		entries(prev, (k) => {
-			delete prev![k];
+	if (!prevProps) return;
+
+	if (!next.props) {
+		entries(prevProps, (k) => {
+			delete prevProps![k];
 		});
 		return;
 	}
 
-	prev = toRaw(prev);
-	next = toRaw(next);
+	const nextProps = toRaw(next.props);
 
-	entries(next, (key, val) => {
-		prev[key] = val;
+	entries(nextProps, (key, val) => {
+		prevProps[key] = val;
 	});
 
-	entries(prev, (key) => {
-		if (!has(next, key)) {
-			Reflect.deleteProperty(prev, key);
+	entries(prevProps, (key) => {
+		if (!has(nextProps, key)) {
+			Reflect.deleteProperty(prevProps, key);
 		}
 	});
+
+	next.props = prevProps;
 };
 
 export const patchProps = (prev: Props | null, next: Props | null, el: HTMLElement) => {

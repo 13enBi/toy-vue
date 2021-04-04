@@ -48,14 +48,19 @@ export const normalizaChildren = (children?: VnodeChild | VnodeChildren): Vnode[
 	return children as Vnode[];
 };
 
-function h(type: Exclude<VnodeType, null>): Vnode;
-function h(type: VnodeType, child: VnodeChild): Vnode;
-function h(type: VnodeType, children: VnodeChildren): Vnode;
-function h(type: VnodeType, props: Props | null): Vnode;
-function h(type: VnodeType, props: Props | null, child: VnodeChild): Vnode;
-function h(type: VnodeType, props: Props | null, children: VnodeChildren): Vnode;
-function h(type: VnodeType, b?: any, c?: any): Vnode {
-	const l = arguments.length;
+interface H {
+	(type: Exclude<VnodeType, null>): Vnode;
+	(type: VnodeType, child: VnodeChild): Vnode;
+	(type: VnodeType, children: VnodeChildren): Vnode;
+	(type: VnodeType, props: Props | null): Vnode;
+	(type: VnodeType, props: Props | null, child: VnodeChild): Vnode;
+	(type: VnodeType, props: Props | null, children: VnodeChildren): Vnode;
+}
+
+export const h: H = (...args: any[]) => {
+	const l = args.length;
+
+	let [type, b, c] = args;
 
 	switch (l) {
 		case 1: {
@@ -73,12 +78,10 @@ function h(type: VnodeType, b?: any, c?: any): Vnode {
 		}
 		default: {
 			if (l > 3) {
-				c = normalizaChildren([...arguments].slice(2));
+				c = normalizaChildren(args.slice(2));
 			}
 
 			return createVnode(type, b, c);
 		}
 	}
-}
-
-export { h };
+};

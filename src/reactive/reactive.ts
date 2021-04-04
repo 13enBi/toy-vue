@@ -1,9 +1,11 @@
 import { track, trigger } from './effect';
 
-const RAW = '__raw';
+const RAW = '__raw__' + Math.random();
 
 const handler: ProxyHandler<any> = {
 	get(target, key) {
+		if (key === RAW) return target;
+
 		track(target, key);
 
 		return Reflect.get(target, key);
@@ -20,9 +22,10 @@ const handler: ProxyHandler<any> = {
 
 export const reactive = <T extends object>(source: T): T => {
 	const result = new Proxy(source, handler);
-	result[RAW] = source;
 
 	return result;
 };
 
-export const toRaw = <T extends object>(target: T): T => (target as any)[RAW] || target;
+export const toRaw = <T>(source: T): T => {
+	return (source && (source as any)[RAW]) || source;
+};

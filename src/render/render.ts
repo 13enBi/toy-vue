@@ -5,7 +5,7 @@ import { normalizaChildren, Vnode, VnodeChildren, VnodeFlag } from './vnode';
 
 type PatchNode = Vnode | null;
 
-const unmount = (vnode: PatchNode) => {
+export const unmount = (vnode: PatchNode) => {
 	if (vnode && vnode.el) remove(vnode.el);
 };
 
@@ -78,10 +78,10 @@ const mountComponent = (vnode: Vnode, container: Host) => {
 	createRenderEffect(instance, vnode, container);
 };
 
-const patchComponent = (prev: Vnode, next: Vnode, container: Host) => {
+const patchComponent = (prev: Vnode, next: Vnode) => {
 	const instance = (next.component = prev.component)!;
 
-	patchComponentProps(prev.props!, next.props!);
+	patchComponentProps(prev, next);
 
 	instance.update();
 };
@@ -90,7 +90,7 @@ const renderComponent = (prev: PatchNode, next: Vnode, container: Host) => {
 	if (!prev) {
 		mountComponent(next, container);
 	} else {
-		patchComponent(prev, next, container);
+		patchComponent(prev, next);
 	}
 };
 

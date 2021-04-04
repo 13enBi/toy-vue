@@ -14,7 +14,6 @@ export interface Component {
 
 export interface ComponentInstance {
 	vnode: Vnode;
-	next: Vnode | null;
 	tree: Vnode;
 	component: Component;
 
@@ -35,7 +34,6 @@ export const createComponentInstance = (vnode: Vnode): ComponentInstance => {
 	const instance = {
 		component,
 		vnode,
-		next: null,
 		tree: {} as Vnode,
 		update: null!,
 		render,
