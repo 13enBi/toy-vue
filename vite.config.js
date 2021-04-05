@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import path from 'path';
 import alias from '@rollup/plugin-alias';
 
 export default defineConfig({
@@ -7,7 +6,7 @@ export default defineConfig({
 
 	esbuild: {
 		jsxFactory: 'h',
-		jsxFragment: 'Fragment',
-		jsxInject: 'import {h} from "@/render/vnode";',
+		jsxFragment: 'FRAGMENG',
+		jsxInject: 'import {h,FRAGMENG} from "@/render/vnode";',
 	},
 });

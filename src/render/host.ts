@@ -1,6 +1,7 @@
 import { Vnode } from './vnode';
 
 export interface Host extends HTMLElement {
+	[key: string]: any;
 	vnode?: Vnode;
 }
 
@@ -9,6 +10,8 @@ export const querySelector = (sele: string) => document.querySelector(sele);
 export const createElement = (type: string) => document.createElement(type);
 
 export const createText = (text: string) => document.createTextNode(text);
+
+export const createComment = (comment: string) => document.createComment(comment);
 
 export const insert = (parent: Element, child: Node, anchor = null) => parent.insertBefore(child, anchor);
 

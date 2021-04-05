@@ -1,6 +1,6 @@
 import { track, trigger } from './effect';
 
-const RAW = '__raw__' + Math.random();
+const RAW = Symbol();
 
 const handler: ProxyHandler<any> = {
 	get(target, key) {

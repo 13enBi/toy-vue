@@ -1,7 +1,7 @@
 import { createComponentInstance, createRenderEffect } from './component';
-import { createElement, createText, Host, insert, remove, setText } from './host';
+import { createComment, createElement, createText, Host, insert, remove, setText } from './host';
 import { patchComponentProps, patchProps } from './props';
-import { normalizaChildren, Vnode, VnodeChildren, VnodeFlag } from './vnode';
+import { normalizaNode, Vnode, VnodeChildren, VnodeFlag } from './vnode';
 
 type PatchNode = Vnode | null;
 
@@ -10,8 +10,8 @@ export const unmount = (vnode: PatchNode) => {
 };
 
 const mountChildren = (children: VnodeChildren | undefined, el: Host) => {
-	normalizaChildren(children).forEach((child) => {
-		patch(null, child, el);
+	children?.forEach((child, i) => {
+		patch(null, (children[i] = normalizaNode(child)), el);
 	});
 };
 
@@ -23,13 +23,29 @@ const patchChildren = (prev: VnodeChildren | undefined, next: VnodeChildren | un
 		return;
 	}
 
-	next = normalizaChildren(next);
+	if (!prev) {
+		next?.forEach((child) => {
+			patch(null, child as Vnode, el);
+		});
+		return;
+	}
 
-	prev?.forEach((child: any, index) => {
-		const nextChild = (next as Vnode[])[index];
+	const prevLen = prev.length;
+	const nextLen = next.length;
 
-		patch(child, nextChild, el);
-	});
+	for (let i = 0; i < Math.min(prevLen, nextLen); i++) {
+		patch(prev[i] as Vnode, (next[i] = normalizaNode(next[i])), el);
+	}
+
+	if (nextLen > prevLen) {
+		for (let i = prevLen; i < nextLen; i++) {
+			patch(null, (next[i] = normalizaNode(next[i])), el);
+		}
+	} else if (prevLen > nextLen) {
+		for (let i = nextLen; i < prevLen; i++) {
+			unmount(prev[i] as Vnode);
+		}
+	}
 };
 
 const mountElement = (vnode: Vnode, container: Host) => {
@@ -64,7 +80,9 @@ const renderText = (prev: PatchNode, next: Vnode, container: Host) => {
 	const text = next.children![0] as string;
 
 	if (prev) {
-		setText((next.el = prev.el)!, text);
+		next.el = prev.el!;
+		const prevText = prev.children![0] as string;
+		prevText !== text && setText(next.el, text);
 	} else {
 		const el = (next.el = createText(text));
 
@@ -94,23 +112,57 @@ const renderComponent = (prev: PatchNode, next: Vnode, container: Host) => {
 	}
 };
 
+const renderComment = (prev: PatchNode, next: Vnode, container: Host) => {
+	const str = next.children![0] as string;
+
+	if (prev) {
+		(prev.el as Node).nodeValue = str;
+	} else {
+		const comment = createComment(str);
+
+		insert(container, comment);
+	}
+};
+
+const renderFragment = (prev: PatchNode, next: Vnode, container: Host) => {
+	if (prev) {
+		next.el = prev.el;
+		patchChildren(prev.children, next.children, container);
+	} else {
+		next.el = container;
+		mountChildren(next.children, container);
+	}
+};
+
 export const patch = (prev: PatchNode, next: Vnode, container: Host) => {
 	if (prev?.type !== next.type) {
 		unmount(prev);
 		prev = null;
 	}
 
+	let doPatch;
+
 	switch (next.flag) {
 		case VnodeFlag.Element: {
-			renderElement(prev, next, container);
+			doPatch = renderElement;
 			break;
 		}
 		case VnodeFlag.Text: {
-			renderText(prev, next, container);
+			doPatch = renderText;
 			break;
 		}
 		case VnodeFlag.Component: {
-			renderComponent(prev, next, container);
+			doPatch = renderComponent;
+			break;
+		}
+
+		case VnodeFlag.Comment: {
+			doPatch = renderComment;
+			break;
+		}
+
+		case VnodeFlag.Fragment: {
+			doPatch = renderFragment;
 			break;
 		}
 
@@ -118,6 +170,8 @@ export const patch = (prev: PatchNode, next: Vnode, container: Host) => {
 			throw new Error('unknow vnode flag:' + next.flag);
 		}
 	}
+
+	doPatch(prev, next, container);
 };
 
 export const render = (vnode: PatchNode, container: Host) => {

@@ -5,12 +5,7 @@ type HandlerMap = Record<string, EventHandler | null>;
 
 export const isEvent = (key: string) => key.length > 2 && key.startsWith('on');
 
-const parseName = (key: string, lower = true) => {
-	//onClick -> click;
-	key = key.slice(2);
-
-	return lower ? key.toLowerCase() : key;
-};
+const parseName = (key: string) => key.slice(2).toLowerCase(); //onClick -> click
 
 const createHandler = (listener: EventListener) => {
 	const handler: EventHandler = function (e: Event) {

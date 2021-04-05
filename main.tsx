@@ -1,22 +1,34 @@
+import { effect } from './src/reactive/effect';
 import { reactive } from './src/reactive/reactive';
 import { defineComponent } from './src/render/component';
 import { createApp } from './src/render/createApp';
 
 const Child = defineComponent((props) => {
-	const state = reactive({ count: 1, showName: true });
+	const state = reactive({ count: 1, showName: true, list: [1] });
 
 	const toggle = () => {
 		state.showName = !state.showName;
 	};
+	const add = () => state.count++;
+	const sub = () => state.count--;
 
-	return () => {
-		return (
+	effect(() => {
+		state.list = new Array(state.count).fill(1).map((_, i) => i);
+	});
+
+	return () => (
+		<>
+			<button onClick={add}>add</button>
+			<button onClick={sub}>sub</button>
+			<button onClick={toggle}>{state.showName}</button>
+			<div>{state.showName ? <div onClick={props.sayName}>{props.name}</div> : <p>{state.count}</p>}</div>
 			<div>
-				<button onClick={toggle}>{state.showName}</button>
-				<div>{state.showName ? <div onClick={props.sayName}>{props.name}</div> : <p>{state.count}</p>}</div>
+				{state.list.map((i) => (
+					<div>{i}</div>
+				))}
 			</div>
-		);
-	};
+		</>
+	);
 });
 
 const App = defineComponent(() => {
@@ -27,16 +39,18 @@ const App = defineComponent(() => {
 	};
 
 	return () => (
-		<div>
+		<>
 			<input value={state.name} onInput={handleInput} />
 			{state.name}
-			<Child
-				{...state}
-				sayName={() => {
-					console.log(state.name);
-				}}
-			></Child>
-		</div>
+			<div>
+				<Child
+					{...state}
+					sayName={() => {
+						console.log(state.name);
+					}}
+				></Child>
+			</div>
+		</>
 	);
 });
 
