@@ -97,7 +97,7 @@ const mountComponent = (vnode: Vnode, container: Host) => {
 };
 
 const patchComponent = (prev: Vnode, next: Vnode) => {
-	const instance = (next.component = prev.component)!;
+	const instance = (next.componentInstance = prev.componentInstance)!;
 
 	patchComponentProps(prev, next);
 

@@ -1,8 +1,7 @@
-import { Vnode } from './vnode';
+import { Vnode } from "./vnode";
 
 export interface Host extends HTMLElement {
-	[key: string]: any;
-	vnode?: Vnode;
+    vnode?: Vnode;
 }
 
 export const querySelector = (sele: string) => document.querySelector(sele);

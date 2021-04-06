@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
-import alias from '@rollup/plugin-alias';
+import { defineConfig } from "vite";
+import alias from "@rollup/plugin-alias";
 
 export default defineConfig({
-	plugins: [alias({ entries: [{ find: '@', replacement: './src' }] })],
+    plugins: [alias({ entries: [{ find: "@", replacement: "./src" }] })],
 
-	esbuild: {
-		jsxFactory: 'h',
-		jsxFragment: 'FRAGMENG',
-		jsxInject: 'import {h,FRAGMENG} from "@/render/vnode";',
-	},
+    esbuild: {
+        jsxFactory: "__h",
+        jsxFragment: "__FRAGMENG",
+        jsxInject: 'import { h as __h, FRAGMENG as __FRAGMENG } from "@/render/vnode";',
+    },
 });
