@@ -4,38 +4,46 @@ import { defineComponent } from "./src/render/component";
 import { createApp } from "./src/render/createApp";
 import "./style.css";
 
-const Child = defineComponent((props) => {
-    const state = reactive({ count: 1, showName: true, list: [1] });
+const Child = defineComponent({
+    props: {
+        name: "wuhu",
+        age: "100",
+    },
 
-    const toggle = () => {
-        state.showName = !state.showName;
-    };
-    const add = () => state.count++;
-    const sub = () => state.count--;
+    setup: (props) => {
+        const state = reactive({ count: 1, showName: true, list: [1] });
 
-    effect(() => {
-        state.list = new Array(state.count).fill(1).map((_, i) => i);
-    });
+        const toggle = () => {
+            state.showName = !state.showName;
+        };
+        const add = () => state.count++;
+        const sub = () => state.count--;
 
-    return () => (
-        <>
-            <button onClick={add}>add</button>
-            <button onClick={sub}>sub</button>
-            <button onClick={toggle}>{state.showName}</button>
-            <div>
-                {state.showName ? (
-                    <div onClick={props.sayName}>{props.name}</div>
-                ) : (
-                    <img src="/favicon.svg" style={{ width: "50px" }} />
-                )}
-            </div>
-            <div>
-                {state.list.map((i) => (
-                    <div>{i}</div>
-                ))}
-            </div>
-        </>
-    );
+        effect(() => {
+            state.list = new Array(state.count).fill(1).map((_, i) => i);
+        });
+
+        return () => (
+            <>
+                {null}
+                <button onClick={add}>add</button>
+                <button onClick={sub}>sub</button>
+                <button onClick={toggle}>{state.showName}</button>
+                <div>
+                    {state.showName ? (
+                        <div onClick={props.sayName}>{props.name}</div>
+                    ) : (
+                        <img src="/favicon.svg" style={{ width: "50px" }} />
+                    )}
+                </div>
+                <div>
+                    {state.list.map((i) => (
+                        <div>{i}</div>
+                    ))}
+                </div>
+            </>
+        );
+    },
 });
 
 const App = defineComponent(() => {
@@ -55,7 +63,9 @@ const App = defineComponent(() => {
                     sayName={() => {
                         console.log(state.name);
                     }}
-                ></Child>
+                >
+                    child
+                </Child>
             </div>
         </>
     );

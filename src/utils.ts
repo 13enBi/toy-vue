@@ -1,6 +1,7 @@
 type Obj = Record<string, any>;
 
 export const isString = (val: unknown): val is string => typeof val === "string";
+export const isFuction = (val: unknown): val is (...args: any[]) => any => typeof val === "function";
 
 export const isArray = Array.isArray;
 
@@ -13,3 +14,5 @@ export const entries = (val: Obj, each: (key: string, val: any, index: number) =
 };
 
 export const has = (target: any, key: any) => !isEmptyObject(target) && Reflect.has(target, key);
+
+export const capitalize = (str: string) => str.replace(/^\w/, (s) => s.toUpperCase());

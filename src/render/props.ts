@@ -1,5 +1,5 @@
-import { toRaw } from "../reactive/reactive";
-import { entries, has, isArray, isEmptyObject, isObject, isString } from "../utils";
+import { entries, has, isEmptyObject, isObject, isString } from "../utils";
+import { ComponentInstance, getComponentProps } from "./component";
 import { isEvent, patchEvent } from "./event";
 import { setAttr } from "./host";
 import { Props, Vnode } from "./vnode";
@@ -80,10 +80,10 @@ const patchProp = (key: string, prev: any, next: any, el: HTMLElement) => {
     }
 };
 
-export const patchComponentProps = (prev: Vnode, next: Vnode) => {
-    const prevProps = toRaw(prev.props!);
+export const patchComponentProps = (instance: ComponentInstance, next: Vnode) => {
+    console.log(next);
 
-    if (!prevProps) return;
+    const prevProps = instance.componentProps;
 
     if (!next.props) {
         entries(prevProps, (k) => {
@@ -92,7 +92,7 @@ export const patchComponentProps = (prev: Vnode, next: Vnode) => {
         return;
     }
 
-    const nextProps = toRaw(next.props);
+    const nextProps = getComponentProps(next, instance.propsOptions);
 
     entries(nextProps, (key, val) => {
         prevProps[key] = val;
